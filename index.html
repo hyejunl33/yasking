@@ -15,6 +15,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
+            height: 100%; /* Ensure html and body take full height */
             background-color: transparent; /* Canvas will be the background */
             color: var(--text-color);
             font-family: 'Noto Sans KR', sans-serif;
@@ -32,6 +33,8 @@
         .main-container {
             padding: 40px 5%;
             box-sizing: border-box;
+            position: relative; /* Create a stacking context */
+            z-index: 0; /* Ensure it's above the canvas */
         }
 
         .hero-title-container {
@@ -50,6 +53,36 @@
             display: inline-block;
             color: #ff4757;
             text-shadow: 0 0 20px #ff4757;
+        }
+
+        /* Photo of the Day */
+        .photo-of-the-day-container {
+            text-align: center;
+            margin-bottom: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .photo-of-the-day-container h2 {
+            font-size: 3vw;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #ff6b81;
+            text-shadow: 0 0 10px rgba(255, 107, 129, 0.5);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        .photo-of-the-day-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
         .comment-section {
@@ -128,6 +161,13 @@
             opacity: 0;
             transform: translateY(20px);
             animation: new-comment-animation 0.6s forwards ease-out;
+            display: flex; /* For delete button alignment */
+            justify-content: space-between; /* For delete button alignment */
+            align-items: flex-start; /* For delete button alignment */
+        }
+
+        .comment-content {
+            flex-grow: 1;
         }
 
         .comment-author {
@@ -138,6 +178,48 @@
 
         .comment-text {
             color: #eee;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-like-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .comment-like-button.clicked {
+            animation: heart-pop 0.5s ease;
+        }
+
+        .comment-like-count {
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .delete-comment {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .delete-comment:hover {
+            color: #ff4757;
         }
 
         @keyframes new-comment-animation {
@@ -250,10 +332,16 @@
             <h1 class="hero-title">양성호 <span class="heart">♥️</span>팬<span class="heart">♥️</span>페이지</h1>
         </div>
 
+        <section class="photo-of-the-day-container" id="photo-of-the-day-section">
+            <h2>오늘의 사진</h2>
+            <img id="photo-of-the-day-img" src="" alt="오늘의 사진">
+        </section>
+
         <section class="comment-section">
             <h2>댓글 남기기</h2>
             <form id="comment-form">
                 <input type="text" id="comment-author" placeholder="이름" required>
+                <input type="password" id="comment-password" placeholder="비밀번호 (삭제 시 필요)" required>
                 <textarea id="comment-text" placeholder="응원의 메시지를 남겨주세요..." required rows="3"></textarea>
                 <button type="submit">댓글 달기</button>
             </form>
@@ -323,12 +411,8 @@
         resizeCanvas();
         drawGradient();
 
-        // --- Gallery & Lightbox & Fireworks ---
-        const photoGallery = document.getElementById('photo-gallery');
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        const closeLightbox = document.querySelector('.close-lightbox');
-        const imageFiles = [
+        // --- Image Files (Local) ---
+        const localImageFiles = [
             "1686720811158.jpg_compressed.JPEG", "1694754450294.jpg_compressed.JPEG", "1698713625070.jpg_compressed.JPEG",
             "1700303421339.jpg_compressed.JPEG", "1700803512587.jpg_compressed.JPEG", "1703266545802.jpg_compressed.JPEG",
             "1709972316035.jpg_compressed.JPEG", "1710858067320.jpg_compressed.JPEG", "1710859742155.jpg_compressed.JPEG",
@@ -355,72 +439,124 @@
             "IMG_0487.PNG_compressed.JPEG", "KakaoTalk_20240418_120329006.jpg", "KakaoTalk_20240501_133324924.jpg"
         ];
 
-        imageFiles.forEach(file => {
-            const item = document.createElement('div');
-            item.classList.add('gallery-item');
-            
-            const img = document.createElement('img');
-            img.src = './' + encodeURIComponent(file);
-            img.alt = "양성호 사진";
-            item.appendChild(img);
+        // --- Photo of the Day Logic ---
+        const photoOfTheDaySection = document.getElementById('photo-of-the-day-section');
+        const photoOfTheDayImg = document.getElementById('photo-of-the-day-img');
 
-            const likeContainer = document.createElement('div');
-            likeContainer.classList.add('like-container');
+        function getTodayDateString() {
+            const today = new Date();
+            return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+        }
 
-            const likeButton = document.createElement('button');
-            likeButton.classList.add('like-button');
-            likeButton.innerHTML = '❤️';
+        async function setPhotoOfTheDay() {
+            const todayDate = getTodayDateString();
+            const photoOfTheDayDocRef = db.collection('photoOfTheDay').doc('current');
 
-            const likeCount = document.createElement('span');
-            likeCount.classList.add('like-count');
-            likeCount.textContent = '0';
+            const doc = await photoOfTheDayDocRef.get();
+            if (doc.exists && doc.data().date === todayDate) {
+                // Photo of the day already set for today
+                photoOfTheDayImg.src = './' + encodeURIComponent(doc.data().fileName);
+            } else {
+                // Select a new random photo
+                const randomIndex = Math.floor(Math.random() * localImageFiles.length);
+                const selectedFile = localImageFiles[randomIndex];
+                
+                await photoOfTheDayDocRef.set({
+                    fileName: selectedFile,
+                    date: todayDate
+                });
+                photoOfTheDayImg.src = './' + encodeURIComponent(selectedFile);
+            }
+        }
 
-            likeContainer.appendChild(likeButton);
-            likeContainer.appendChild(likeCount);
-            item.appendChild(likeContainer);
+        // --- Gallery & Lightbox & Fireworks ---
+        const photoGallery = document.getElementById('photo-gallery');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const closeLightbox = document.querySelector('.close-lightbox');
 
-            photoGallery.appendChild(item);
-
-            // Fetch initial like count from Firestore and listen for real-time updates
-            const imageId = encodeURIComponent(file);
-            const likeDocRef = db.collection('likes').doc(imageId);
-            likeDocRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    likeCount.textContent = doc.data().count || 0;
-                } else {
-                    likeCount.textContent = 0; // Initialize if document doesn't exist
-                }
-            }, (error) => {
-                console.error("Error getting document:", error);
+        async function loadGalleryPhotos() {
+            const imageLikes = {};
+            const snapshot = await db.collection('likes').get();
+            snapshot.forEach(doc => {
+                imageLikes[doc.id] = doc.data().count || 0;
             });
 
-            likeButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Increment like count in Firestore
-                likeDocRef.set({ count: firebase.firestore.FieldValue.increment(1) }, { merge: true })
-                    .then(() => {
-                        likeButton.classList.add('clicked');
-                        setTimeout(() => {
-                            likeButton.classList.remove('clicked');
-                        }, 500);
-                    })
-                    .catch((error) => {
-                        console.error("Error updating document:", error);
-                    });
+            // Sort imageFiles by likes (descending)
+            const sortedImageFiles = [...localImageFiles].sort((a, b) => {
+                const likesA = imageLikes[encodeURIComponent(a)] || 0;
+                const likesB = imageLikes[encodeURIComponent(b)] || 0;
+                return likesB - likesA; // Descending order
             });
 
-            item.addEventListener('click', (e) => {
-                if (e.target.classList.contains('like-button') || e.target.parentElement.classList.contains('like-container')) {
-                    return;
-                }
-                if (Math.random() < 0.5) {
-                    createFireworks(e.clientX, e.clientY);
-                } else {
-                    lightbox.style.display = 'flex';
-                    lightboxImg.src = img.src;
-                }
+            photoGallery.innerHTML = ''; // Clear existing photos
+
+            sortedImageFiles.forEach(file => {
+                const item = document.createElement('div');
+                item.classList.add('gallery-item');
+                
+                const img = document.createElement('img');
+                img.src = './' + encodeURIComponent(file);
+                img.alt = "양성호 사진";
+                item.appendChild(img);
+
+                const likeContainer = document.createElement('div');
+                likeContainer.classList.add('like-container');
+
+                const likeButton = document.createElement('button');
+                likeButton.classList.add('like-button');
+                likeButton.innerHTML = '❤️';
+
+                const likeCount = document.createElement('span');
+                likeCount.classList.add('like-count');
+                likeCount.textContent = imageLikes[encodeURIComponent(file)] || 0;
+
+                likeContainer.appendChild(likeButton);
+                likeContainer.appendChild(likeCount);
+                item.appendChild(likeContainer);
+
+                photoGallery.appendChild(item);
+
+                // Listen for real-time updates on this image's likes
+                const imageId = encodeURIComponent(file);
+                const likeDocRef = db.collection('likes').doc(imageId);
+                likeDocRef.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        likeCount.textContent = doc.data().count || 0;
+                    } else {
+                        likeCount.textContent = 0; // Initialize if document doesn't exist
+                    }
+                }, (error) => {
+                    console.error("Error getting document:", error);
+                });
+
+                likeButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    likeDocRef.set({ count: firebase.firestore.FieldValue.increment(1) }, { merge: true })
+                        .then(() => {
+                            likeButton.classList.add('clicked');
+                            setTimeout(() => {
+                                likeButton.classList.remove('clicked');
+                            }, 500);
+                        })
+                        .catch((error) => {
+                            console.error("Error updating document:", error);
+                        });
+                });
+
+                item.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('like-button') || e.target.parentElement.classList.contains('like-container')) {
+                        return;
+                    }
+                    if (Math.random() < 0.5) {
+                        createFireworks(e.clientX, e.clientY);
+                    } else {
+                        lightbox.style.display = 'flex';
+                        lightboxImg.src = img.src;
+                    }
+                });
             });
-        });
+        }
 
         closeLightbox.addEventListener('click', () => { lightbox.style.display = 'none'; });
         lightbox.addEventListener('click', (e) => { if (e.target === lightbox) { lightbox.style.display = 'none'; } });
@@ -434,7 +570,8 @@
             });
         }, { threshold: 0.1 });
 
-        galleryItems.forEach(item => { observer.observe(item); });
+        // Re-observe after loading photos
+        // galleryItems.forEach(item => { observer.observe(item); }); // This line is problematic as galleryItems is empty initially
 
         const fireworksContainer = document.getElementById('fireworks-container');
         function createFireworks(x, y) {
@@ -475,15 +612,16 @@
 
         const commentForm = document.getElementById('comment-form');
         const commentAuthorInput = document.getElementById('comment-author');
+        const commentPasswordInput = document.getElementById('comment-password');
         const commentTextInput = document.getElementById('comment-text');
         const commentList = document.getElementById('comment-list');
 
         // Load comments from Firestore on page load and listen for real-time updates
-        db.collection('comments').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+        db.collection('comments').orderBy('likes', 'desc').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
             commentList.innerHTML = '<h3>댓글 목록</h3>'; // Clear existing comments
             snapshot.forEach((doc) => {
                 const commentData = doc.data();
-                addCommentToDOM(commentData.author, commentData.text);
+                addCommentToDOM(doc.id, commentData.author, commentData.text, commentData.likes || 0, commentData.password);
             });
         }, (error) => {
             console.error("Error getting comments:", error);
@@ -493,17 +631,21 @@
             e.preventDefault();
 
             const author = commentAuthorInput.value.trim();
+            const password = commentPasswordInput.value.trim();
             const text = commentTextInput.value.trim();
 
-            if (author && text) {
+            if (author && password && text) {
                 // Add comment to Firestore
                 db.collection('comments').add({
                     author: author,
+                    password: password, // Storing plain text password for simplicity
                     text: text,
+                    likes: 0,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 })
                 .then(() => {
                     commentAuthorInput.value = '';
+                    commentPasswordInput.value = '';
                     commentTextInput.value = '';
                 })
                 .catch((error) => {
@@ -512,9 +654,13 @@
             }
         });
 
-        function addCommentToDOM(author, text) {
+        function addCommentToDOM(docId, author, text, likes, storedPassword) {
             const commentDiv = document.createElement('div');
             commentDiv.classList.add('comment');
+            commentDiv.dataset.docId = docId; // Store the document ID
+
+            const commentContentDiv = document.createElement('div');
+            commentContentDiv.classList.add('comment-content');
 
             const authorP = document.createElement('p');
             authorP.classList.add('comment-author');
@@ -524,11 +670,65 @@
             textP.classList.add('comment-text');
             textP.textContent = text;
 
-            commentDiv.appendChild(authorP);
-            commentDiv.appendChild(textP);
+            commentContentDiv.appendChild(authorP);
+            commentContentDiv.appendChild(textP);
+
+            const commentActionsDiv = document.createElement('div');
+            commentActionsDiv.classList.add('comment-actions');
+
+            const commentLikeButton = document.createElement('button');
+            commentLikeButton.classList.add('comment-like-button');
+            commentLikeButton.innerHTML = '❤️';
+
+            const commentLikeCount = document.createElement('span');
+            commentLikeCount.classList.add('comment-like-count');
+            commentLikeCount.textContent = likes;
+
+            commentLikeButton.addEventListener('click', () => {
+                db.collection('comments').doc(docId).update({ likes: firebase.firestore.FieldValue.increment(1) })
+                    .then(() => {
+                        commentLikeButton.classList.add('clicked');
+                        setTimeout(() => {
+                            commentLikeButton.classList.remove('clicked');
+                        }, 500);
+                    })
+                    .catch((error) => {
+                        console.error("Error updating comment likes: ", error);
+                    });
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-comment');
+            deleteButton.textContent = 'X';
+
+            deleteButton.addEventListener('click', () => {
+                const enteredPassword = prompt('댓글을 삭제하려면 비밀번호를 입력하세요:');
+                if (enteredPassword === storedPassword) {
+                    db.collection('comments').doc(docId).delete()
+                        .then(() => {
+                            console.log("Document successfully deleted!");
+                        })
+                        .catch((error) => {
+                            console.error("Error removing document: ", error);
+                        });
+                } else if (enteredPassword !== null) {
+                    alert('비밀번호가 일치하지 않습니다.');
+                }
+            });
+
+            commentActionsDiv.appendChild(commentLikeButton);
+            commentActionsDiv.appendChild(commentLikeCount);
+            commentActionsDiv.appendChild(deleteButton);
+
+            commentDiv.appendChild(commentContentDiv);
+            commentDiv.appendChild(commentActionsDiv);
 
             commentList.insertBefore(commentDiv, commentList.children[1]);
         }
+
+        // Initial load
+        setPhotoOfTheDay();
+        loadGalleryPhotos();
     </script>
 </body>
 </html>
