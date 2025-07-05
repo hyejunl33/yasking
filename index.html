@@ -124,6 +124,135 @@
         .particle { position: absolute; border-radius: 50%; opacity: 0; }
         .love-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 5vw; font-weight: bold; color: white; text-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; z-index: 10000; opacity: 0; transition: all 0.5s ease-in-out; }
 
+        /* --- Like Button Styles --- */
+        .like-container {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .like-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .like-button.clicked {
+            animation: heart-pop 0.5s ease;
+        }
+
+        @keyframes heart-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+
+        .like-count {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* --- Comment Section Styles --- */
+        .comment-section {
+            padding: 50px 5%;
+            max-width: 800px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1;
+            position: relative;
+        }
+
+        .comment-section h2, .comment-section h3 {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        #comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        #comment-form input, #comment-form textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+        }
+
+        #comment-form input::placeholder, #comment-form textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #comment-form button {
+            padding: 15px;
+            border: none;
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #comment-form button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        #comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .comment {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #ff4757;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: new-comment-animation 0.6s forwards ease-out;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            color: #ff6b81;
+            margin-bottom: 10px;
+        }
+
+        .comment-text {
+            color: #eee;
+        }
+
+        @keyframes new-comment-animation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -140,6 +269,19 @@
             <!-- Photos will be dynamically added here -->
         </div>
     </main>
+
+    <section class="comment-section">
+        <h2>댓글 남기기</h2>
+        <form id="comment-form">
+            <input type="text" id="comment-author" placeholder="이름" required>
+            <textarea id="comment-text" placeholder="응원의 메시지를 남겨주세요..." required></textarea>
+            <button type="submit">댓글 달기</button>
+        </form>
+        <div id="comment-list">
+            <h3>댓글 목록</h3>
+            <!-- Comments will be added here -->
+        </div>
+    </section>
 
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
@@ -200,247 +342,76 @@
         const lightboxImg = document.getElementById('lightbox-img');
         const closeLightbox = document.querySelector('.close-lightbox');
         const imageFiles = [
-            "1686720811158.jpg_compressed.JPEG",
-            "1694754450294.jpg_compressed.JPEG",
-            "1698713625070.jpg_compressed.JPEG",
-            "1700303421339.jpg_compressed.JPEG",
-            "1700803512587.jpg_compressed.JPEG",
-            "1703266545802.jpg_compressed.JPEG",
-            "1709972316035.jpg_compressed.JPEG",
-            "1710858067320.jpg_compressed.JPEG",
-            "1710859742155.jpg_compressed.JPEG",
-            "1710861169100.jpg_compressed.JPEG",
-            "1711355496829.jpg_compressed.JPEG",
-            "1711878409168.jpg_compressed.JPEG",
-            "1713186375606.jpg_compressed.JPEG",
-            "1713346787923.jpg_compressed.JPEG",
-            "1713408358535.jpg_compressed.JPEG",
-            "1713408358572.jpg_compressed.JPEG",
-            "1713408358847.jpg_compressed.JPEG",
-            "1714391616423.jpg_compressed.JPEG",
-            "1714631330191.jpg_compressed.JPEG",
-            "1717849486618.jpg_compressed.JPEG",
-            "1718289319686.jpg_compressed.JPEG",
-            "1719414467427.jpg_compressed.JPEG",
-            "1719414467460.jpg_compressed.JPEG",
-            "1719414467785.jpg_compressed.JPEG",
-            "1719414467839.jpg_compressed.JPEG",
-            "1719414467873.jpg_compressed.JPEG",
-            "1719414467905.jpg_compressed.JPEG",
-            "1719414467938.jpg_compressed.JPEG",
-            "1719414467985.jpg_compressed.JPEG",
-            "1719414530733.jpg_compressed.JPEG",
-            "1719414530788.jpg_compressed.JPEG",
-            "1719414530868.jpg_compressed.JPEG",
-            "1719414530956.jpg_compressed.JPEG",
-            "1719414531014.jpg_compressed.JPEG",
-            "1719414531060.jpg_compressed.JPEG",
-            "1719414531117.jpg_compressed.JPEG",
-            "1719414531154.jpg_compressed.JPEG",
-            "1719414531211.jpg_compressed.JPEG",
-            "1719414531284.jpg_compressed.JPEG",
-            "1719414531373.jpg_compressed.JPEG",
-            "1719414531429.jpg_compressed.JPEG",
-            "1719424251378.jpg_compressed.JPEG",
-            "1719424251424.jpg_compressed.JPEG",
-            "1719424502709.jpg_compressed.JPEG",
-            "1719424502746.jpg_compressed.JPEG",
-            "1719493542709.jpg_compressed.JPEG",
-            "1719497717560.jpg_compressed.JPEG",
-            "1719497717597.jpg_compressed.JPEG",
-            "1719501517033.jpg_compressed.JPEG",
-            "1719501517062.jpg_compressed.JPEG",
-            "1719556628357.jpg_compressed.JPEG",
-            "1719556628498.jpg_compressed.JPEG",
-            "1720348397556.jpg_compressed.JPEG",
-            "1720348397662.jpg_compressed.JPEG",
-            "1720348397662~3.jpg_compressed.JPEG",
-            "1727079376953.png_compressed.JPEG",
-            "1727183691827.jpg_compressed.JPEG",
-            "1731842719872.jpg_compressed.JPEG",
-            "1732461832691.jpg_compressed.JPEG",
-            "1732715572308-1.jpg_compressed.JPEG",
-            "1732715572308-2.jpg_compressed.JPEG",
-            "1734668512751.jpg_compressed.JPEG",
-            "1735131758946.jpg_compressed.JPEG",
-            "1743749168548.jpg_compressed.JPEG",
-            "1745576820286-2.jpg_compressed.JPEG",
-            "양성호1.jpg",
-            "양성호2.jpg",
-            "양성호3.jpg",
-            "eKUeGbDZFKFw.jpg_compressed.JPEG",
-            "image_241225_B62FB42.jpg_compressed.JPEG",
-            "IMG_0487.JPEG_compressed.JPEG",
-            "IMG_0487.PNG_compressed.JPEG",
-            "KakaoTalk_20240418_120329006.jpg",
-            "KakaoTalk_20240501_133324924.jpg",
-            "PXL_20230523_045636813.MP.jpg_compressed.JPEG",
-            "PXL_20230523_050050386.MP.jpg_compressed.JPEG",
-            "PXL_20230523_050209280.MP.jpg_compressed.JPEG",
-            "PXL_20230523_050209970.MP.jpg_compressed.JPEG",
-            "PXL_20230523_100007886.MP.jpg_compressed.JPEG",
-            "PXL_20230523_100025891.MP.jpg_compressed.JPEG",
-            "PXL_20230525_045116115.MP.jpg_compressed.JPEG",
-            "PXL_20230529_093534744.MP.jpg_compressed.JPEG",
-            "PXL_20230531_090027851.MP.jpg_compressed.JPEG",
-            "PXL_20230605_105505651.MP.jpg_compressed.JPEG",
-            "PXL_20230605_105506503.MP.jpg_compressed.JPEG",
-            "PXL_20230605_105508164.MP.jpg_compressed.JPEG",
-            "PXL_20230605_105508717.MP.jpg_compressed.JPEG",
-            "PXL_20230605_105509261.MP.jpg_compressed.JPEG",
-            "PXL_20230609_101843316.MP.jpg_compressed.JPEG",
-            "PXL_20230609_101843851.MP.jpg_compressed.JPEG",
-            "PXL_20230624_080915073.jpg_compressed.JPEG",
-            "PXL_20230701_091908966.PORTRAIT.ORIGINAL.jpg_compressed.JPEG",
-            "PXL_20230701_091911558.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20230701_091915415.jpg_compressed.JPEG",
-            "PXL_20230819_093253594.MP.jpg_compressed.JPEG",
-            "PXL_20230913_042633282.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20231018_080602856.MP.jpg_compressed.JPEG",
-            "PXL_20231027_113550909.MP.jpg_compressed.JPEG",
-            "PXL_20231027_113551774.MP.jpg_compressed.JPEG",
-            "PXL_20231027_143030699.NIGHT.jpg_compressed.JPEG",
-            "PXL_20231030_080312489.jpg_compressed.JPEG",
-            "PXL_20231117_123129652.MP.jpg_compressed.JPEG",
-            "PXL_20231119_115933643.MP.jpg_compressed.JPEG",
-            "PXL_20231205_032458778.MP.jpg_compressed.JPEG",
-            "PXL_20231212_100505542.MP.jpg_compressed.JPEG",
-            "PXL_20231217_111532266.MP.jpg_compressed.JPEG",
-            "PXL_20231217_111533190.MP.jpg_compressed.JPEG",
-            "PXL_20231217_111545528.MP.jpg_compressed.JPEG",
-            "PXL_20231220_092819724.MP.jpg_compressed.JPEG",
-            "PXL_20231220_092820553.MP.jpg_compressed.JPEG",
-            "PXL_20231220_101549115.MP.jpg_compressed.JPEG",
-            "PXL_20231220_121750487.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20231220_121751301.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20231220_121802482.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240124_172207081.MP.jpg_compressed.JPEG",
-            "PXL_20240124_172209246.MP.jpg_compressed.JPEG",
-            "PXL_20240125_151419204.MP.jpg_compressed.JPEG",
-            "PXL_20240213_081718107.MP.jpg_compressed.JPEG",
-            "PXL_20240213_082018505.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240213_083341607.PORTRAIT.ORIGINAL.jpg_compressed.JPEG",
-            "PXL_20240213_084006007.MP.jpg_compressed.JPEG",
-            "PXL_20240213_090205987.MP.jpg_compressed.JPEG",
-            "PXL_20240213_093419682.MP.jpg_compressed.JPEG",
-            "PXL_20240213_093434979.MP.jpg_compressed.JPEG",
-            "PXL_20240307_101956428.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240314_110720823.MP.jpg_compressed.JPEG",
-            "PXL_20240329_031125124.MP.jpg_compressed.JPEG",
-            "PXL_20240329_031132557.MP.jpg_compressed.JPEG",
-            "PXL_20240329_033703111.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240424_073308551.MP.jpg_compressed.JPEG",
-            "PXL_20240424_073846226.MP.jpg_compressed.JPEG",
-            "PXL_20240424_073846770.MP.jpg_compressed.JPEG",
-            "PXL_20240424_100509455.MP.jpg_compressed.JPEG",
-            "PXL_20240427_123020908.MP.jpg_compressed.JPEG",
-            "PXL_20240427_123022301.MP.jpg_compressed.JPEG",
-            "PXL_20240621_103653653.MP.jpg_compressed.JPEG",
-            "PXL_20240621_112046330.MP.jpg_compressed.JPEG",
-            "PXL_20240621_112047637.MP.jpg_compressed.JPEG",
-            "PXL_20240621_112048257.MP.jpg_compressed.JPEG",
-            "PXL_20240621_112048867.MP.jpg_compressed.JPEG",
-            "PXL_20240626_021247441.MP.jpg_compressed.JPEG",
-            "PXL_20240626_021251478.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240626_021253505.PORTRAIT.jpg_compressed.JPEG",
-            "PXL_20240626_041101811.MP.jpg_compressed.JPEG",
-            "PXL_20240626_044549491.MP.jpg_compressed.JPEG",
-            "PXL_20240626_051347028.MP.jpg_compressed.JPEG",
-            "PXL_20240626_051348473.MP.jpg_compressed.JPEG",
-            "PXL_20240626_051349264.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075515104.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075515718.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075516677.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075517122.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075517625.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075518508.MP.jpg_compressed.JPEG",
-            "PXL_20240626_075519434.MP.jpg_compressed.JPEG",
-            "PXL_20240626_084001811.MP.jpg_compressed.JPEG",
-            "PXL_20240626_084003056.MP.jpg_compressed.JPEG",
-            "PXL_20240626_084004012.MP.jpg_compressed.JPEG",
-            "PXL_20240626_084005194.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100613710.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100614663.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100615842.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100620023.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100623449.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100624268.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100625173.MP.jpg_compressed.JPEG",
-            "PXL_20240626_100937623.MP.jpg_compressed.JPEG",
-            "PXL_20240626_102502141.MP.jpg_compressed.JPEG",
-            "PXL_20240626_102504891.MP.jpg_compressed.JPEG",
-            "PXL_20240626_102508202.MP.jpg_compressed.JPEG",
-            "PXL_20240626_102536487.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103841539.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103842420.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103843142.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103843865.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103847280.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103848261.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103849365.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103850494.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103852480.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103853724.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103854624.MP.jpg_compressed.JPEG",
-            "PXL_20240626_103857450.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104004496.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104005124.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104005636.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104006214.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104006891.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104007595.MP.jpg_compressed.JPEG",
-            "PXL_20240626_104008338.MP.jpg_compressed.JPEG",
-            "PXL_20240626_105802317.MP.jpg_compressed.JPEG",
-            "PXL_20240626_105802972.MP.jpg_compressed.JPEG",
-            "PXL_20240626_114251976.MP.jpg_compressed.JPEG",
-            "PXL_20240626_114252862.MP.jpg_compressed.JPEG",
-            "PXL_20240627_055726785.MP.jpg_compressed.JPEG",
-            "PXL_20240627_055727356.MP.jpg_compressed.JPEG",
-            "PXL_20240627_065524159.MP.jpg_compressed.JPEG",
-            "PXL_20240627_065524790.MP.jpg_compressed.JPEG",
-            "PXL_20240627_071354625.MP.jpg_compressed.JPEG",
-            "PXL_20240627_071355790.MP.jpg_compressed.JPEG",
-            "PXL_20240627_071356649.MP.jpg_compressed.JPEG",
-            "PXL_20240627_071405957.MP.jpg_compressed.JPEG",
-            "PXL_20240627_071407112.MP.jpg_compressed.JPEG",
-            "PXL_20240627_100833798.MP.jpg_compressed.JPEG",
-            "PXL_20240627_100835778.MP.jpg_compressed.JPEG",
-            "PXL_20240627_140959970.MP.jpg_compressed.JPEG",
-            "PXL_20240627_152505813.MP.jpg_compressed.JPEG",
-            "PXL_20240727_122305416.MP.jpg_compressed.JPEG",
-            "PXL_20240727_122343432.MP.jpg_compressed.JPEG",
-            "PXL_20240727_155900853.MP.jpg_compressed.JPEG",
-            "PXL_20240728_030113635.jpg_compressed.JPEG",
-            "PXL_20240903_111601728.jpg_compressed.JPEG",
-            "PXL_20240903_132306088.MP.jpg_compressed.JPEG",
-            "PXL_20241016_153034621.MP.jpg_compressed.JPEG",
-            "PXL_20241102_091845601.MP.jpg_compressed.JPEG",
-            "PXL_20241102_091937307.MP.jpg_compressed.JPEG",
-            "PXL_20241215_054737215.MP.jpg_compressed.JPEG",
-            "PXL_20241218_053953992.MP.jpg_compressed.JPEG",
-            "PXL_20241218_055057792.MP.jpg_compressed.JPEG",
-            "PXL_20241225_093110709.jpg_compressed.JPEG",
-            "PXL_20241225_093726617.jpg_compressed.JPEG",
-            "PXL_20250211_105420565.jpg_compressed.JPEG",
-            "PXL_20250427_071152595.jpg_compressed.JPEG",
-            "Screenshot_20231220-230836.png_compressed.JPEG",
-            "Screenshot_20240406-211922.png_compressed.JPEG",
-            "Screenshot_20240406-211922(1).png_compressed.JPEG",
-            "Screenshot_20240608-213510.png_compressed.JPEG",
-            "Screenshot_20240626-001220.png_compressed.JPEG",
-            "Screenshot_20241123-145859.png_compressed.JPEG"
+            "1686720811158.jpg_compressed.JPEG", "1694754450294.jpg_compressed.JPEG", "1698713625070.jpg_compressed.JPEG",
+            "1700303421339.jpg_compressed.JPEG", "1700803512587.jpg_compressed.JPEG", "1703266545802.jpg_compressed.JPEG",
+            "1709972316035.jpg_compressed.JPEG", "1710858067320.jpg_compressed.JPEG", "1710859742155.jpg_compressed.JPEG",
+            "1710861169100.jpg_compressed.JPEG", "1711355496829.jpg_compressed.JPEG", "1711878409168.jpg_compressed.JPEG",
+            "1713186375606.jpg_compressed.JPEG", "1713346787923.jpg_compressed.JPEG", "1713408358535.jpg_compressed.JPEG",
+            "1713408358572.jpg_compressed.JPEG", "1713408358847.jpg_compressed.JPEG", "1714391616423.jpg_compressed.JPEG",
+            "1714631330191.jpg_compressed.JPEG", "1717849486618.jpg_compressed.JPEG", "1718289319686.jpg_compressed.JPEG",
+            "1719414467427.jpg_compressed.JPEG", "1719414467460.jpg_compressed.JPEG", "1719414467785.jpg_compressed.JPEG",
+            "1719414467839.jpg_compressed.JPEG", "1719414467873.jpg_compressed.JPEG", "1719414467905.jpg_compressed.JPEG",
+            "1719414467938.jpg_compressed.JPEG", "1719414467985.jpg_compressed.JPEG", "1719414530733.jpg_compressed.JPEG",
+            "1719414530788.jpg_compressed.JPEG", "1719414530868.jpg_compressed.JPEG", "1719414530956.jpg_compressed.JPEG",
+            "1719414531014.jpg_compressed.JPEG", "1719414531060.jpg_compressed.JPEG", "1719414531117.jpg_compressed.JPEG",
+            "1719414531154.jpg_compressed.JPEG", "1719414531211.jpg_compressed.JPEG", "1719414531284.jpg_compressed.JPEG",
+            "1719414531373.jpg_compressed.JPEG", "1719414531429.jpg_compressed.JPEG", "1719424251378.jpg_compressed.JPEG",
+            "1719424251424.jpg_compressed.JPEG", "1719424502709.jpg_compressed.JPEG", "1719424502746.jpg_compressed.JPEG",
+            "1719493542709.jpg_compressed.JPEG", "1719497717560.jpg_compressed.JPEG", "1719497717597.jpg_compressed.JPEG",
+            "1719501517033.jpg_compressed.JPEG", "1719501517062.jpg_compressed.JPEG", "1719556628357.jpg_compressed.JPEG",
+            "1719556628498.jpg_compressed.JPEG", "1720348397556.jpg_compressed.JPEG", "1720348397662.jpg_compressed.JPEG",
+            "1720348397662~3.jpg_compressed.JPEG", "1727079376953.png_compressed.JPEG", "1727183691827.jpg_compressed.JPEG",
+            "1731842719872.jpg_compressed.JPEG", "1732461832691.jpg_compressed.JPEG", "1732715572308-1.jpg_compressed.JPEG",
+            "1732715572308-2.jpg_compressed.JPEG", "1734668512751.jpg_compressed.JPEG", "1735131758946.jpg_compressed.JPEG",
+            "1743749168548.jpg_compressed.JPEG", "1745576820286-2.jpg_compressed.JPEG", "양성호1.jpg", "양성호2.jpg", "양성호3.jpg",
+            "eKUeGbDZFKFw.jpg_compressed.JPEG", "image_241225_B62FB42.jpg_compressed.JPEG", "IMG_0487.JPEG_compressed.JPEG",
+            "IMG_0487.PNG_compressed.JPEG", "KakaoTalk_20240418_120329006.jpg", "KakaoTalk_20240501_133324924.jpg"
+            // Add more image file names here
         ];
 
         imageFiles.forEach(file => {
             const item = document.createElement('div');
             item.classList.add('gallery-item');
+            
             const img = document.createElement('img');
-            img.src = './' + file;
+            img.src = './' + encodeURIComponent(file);
             img.alt = "양성호 사진";
             item.appendChild(img);
+
+            // Create like button
+            const likeContainer = document.createElement('div');
+            likeContainer.classList.add('like-container');
+
+            const likeButton = document.createElement('button');
+            likeButton.classList.add('like-button');
+            likeButton.innerHTML = '❤️';
+
+            const likeCount = document.createElement('span');
+            likeCount.classList.add('like-count');
+            likeCount.textContent = '0';
+
+            likeContainer.appendChild(likeButton);
+            likeContainer.appendChild(likeCount);
+            item.appendChild(likeContainer);
+
             photoGallery.appendChild(item);
 
+            // Like button event listener
+            likeButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent lightbox from opening
+                let currentLikes = parseInt(likeCount.textContent, 10);
+                currentLikes++;
+                likeCount.textContent = currentLikes;
+                likeButton.classList.add('clicked');
+                setTimeout(() => {
+                    likeButton.classList.remove('clicked');
+                }, 500); // Match animation duration
+            });
+
             item.addEventListener('click', (e) => {
+                if (e.target.classList.contains('like-button') || e.target.parentElement.classList.contains('like-container')) {
+                    return;
+                }
                 if (Math.random() < 0.5) {
                     createFireworks(e.clientX, e.clientY);
                 } else {
@@ -500,6 +471,44 @@
                 });
                 animation.onfinish = () => fireworksContainer.removeChild(particle);
             }
+        }
+
+        // --- Comment Section Logic ---
+        const commentForm = document.getElementById('comment-form');
+        const commentAuthorInput = document.getElementById('comment-author');
+        const commentTextInput = document.getElementById('comment-text');
+        const commentList = document.getElementById('comment-list');
+
+        commentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const author = commentAuthorInput.value.trim();
+            const text = commentTextInput.value.trim();
+
+            if (author && text) {
+                addComment(author, text);
+                commentAuthorInput.value = '';
+                commentTextInput.value = '';
+            }
+        });
+
+        function addComment(author, text) {
+            const commentDiv = document.createElement('div');
+            commentDiv.classList.add('comment');
+
+            const authorP = document.createElement('p');
+            authorP.classList.add('comment-author');
+            authorP.textContent = author;
+
+            const textP = document.createElement('p');
+            textP.classList.add('comment-text');
+            textP.textContent = text;
+
+            commentDiv.appendChild(authorP);
+            commentDiv.appendChild(textP);
+
+            // Insert new comment at the top of the list, after the h3
+            commentList.insertBefore(commentDiv, commentList.children[1]);
         }
     </script>
 
