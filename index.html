@@ -15,13 +15,9 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            background-color: transparent; /* Let the canvas be the background */
+            background-color: #121212;
             color: var(--text-color);
             font-family: 'Noto Sans KR', sans-serif;
-        }
-
-        html { 
-            background-color: #121212; /* Fallback for when canvas fails */
         }
 
         #gradient-canvas {
@@ -33,24 +29,14 @@
             z-index: -1;
         }
 
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            background: transparent;
+        .main-container {
+            padding: 40px 5%;
+            box-sizing: border-box;
         }
-        
+
         .hero-title-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            will-change: transform, opacity;
-            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         .hero-title {
@@ -58,7 +44,6 @@
             font-weight: 900;
             color: var(--text-color);
             text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            white-space: nowrap;
         }
 
         .heart {
@@ -67,14 +52,108 @@
             text-shadow: 0 0 20px #ff4757;
         }
 
+        .comment-section {
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto 50px auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .comment-section h2, .comment-section h3 {
+            text-align: center;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        #comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        #comment-form input, #comment-form textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        #comment-form input::placeholder, #comment-form textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #comment-form button {
+            padding: 15px;
+            border: none;
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #comment-form button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        #comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .comment {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #ff4757;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: new-comment-animation 0.6s forwards ease-out;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            color: #ff6b81;
+            margin-bottom: 10px;
+        }
+
+        .comment-text {
+            color: #eee;
+        }
+
+        @keyframes new-comment-animation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .gallery-container {
             width: 100%;
-            padding: 100px 0;
+            padding: 50px 0;
             overflow: hidden;
             background: transparent;
             position: relative;
             z-index: 1;
-            margin-top: 100vh;
         }
 
         .gallery {
@@ -106,7 +185,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            border-radius: 15px; /* Ensure image respects border radius */
+            border-radius: 15px;
             transition: transform 0.5s ease;
         }
 
@@ -114,7 +193,6 @@
             transform: scale(1.1);
         }
 
-        /* Lightbox and Fireworks Styles from v3 */
         .lightbox { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
         .lightbox-content { max-width: 85%; max-height: 85%; animation: zoomIn 0.5s ease; }
         @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -124,7 +202,6 @@
         .particle { position: absolute; border-radius: 50%; opacity: 0; }
         .love-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 5vw; font-weight: bold; color: white; text-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; z-index: 10000; opacity: 0; transition: all 0.5s ease-in-out; }
 
-        /* --- Like Button Styles --- */
         .like-container {
             position: absolute;
             bottom: 15px;
@@ -163,125 +240,35 @@
             font-weight: bold;
             color: white;
         }
-
-        /* --- Comment Section Styles --- */
-        .comment-section {
-            padding: 50px 5%;
-            max-width: 800px;
-            margin: 50px auto;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1;
-            position: relative;
-        }
-
-        .comment-section h2, .comment-section h3 {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 30px;
-        }
-
-        #comment-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-
-        #comment-form input, #comment-form textarea {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            color: white;
-            font-family: 'Noto Sans KR', sans-serif;
-            font-size: 16px;
-        }
-
-        #comment-form input::placeholder, #comment-form textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        #comment-form button {
-            padding: 15px;
-            border: none;
-            background: linear-gradient(45deg, #ff4757, #ff6b81);
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        #comment-form button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
-        }
-
-        #comment-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .comment {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #ff4757;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: new-comment-animation 0.6s forwards ease-out;
-        }
-
-        .comment-author {
-            font-weight: 700;
-            color: #ff6b81;
-            margin-bottom: 10px;
-        }
-
-        .comment-text {
-            color: #eee;
-        }
-
-        @keyframes new-comment-animation {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
     </style>
 </head>
 <body>
     <canvas id="gradient-canvas"></canvas>
 
-    <header class="hero">
+    <div class="main-container">
         <div class="hero-title-container">
             <h1 class="hero-title">양성호 <span class="heart">♥️</span>팬<span class="heart">♥️</span>페이지</h1>
         </div>
-    </header>
 
-    <main class="gallery-container">
-        <div class="gallery" id="photo-gallery">
-            <!-- Photos will be dynamically added here -->
-        </div>
-    </main>
+        <section class="comment-section">
+            <h2>댓글 남기기</h2>
+            <form id="comment-form">
+                <input type="text" id="comment-author" placeholder="이름" required>
+                <textarea id="comment-text" placeholder="응원의 메시지를 남겨주세요..." required rows="3"></textarea>
+                <button type="submit">댓글 달기</button>
+            </form>
+            <div id="comment-list">
+                <h3>댓글 목록</h3>
+                <!-- Comments will be added here -->
+            </div>
+        </section>
 
-    <section class="comment-section">
-        <h2>댓글 남기기</h2>
-        <form id="comment-form">
-            <input type="text" id="comment-author" placeholder="이름" required>
-            <textarea id="comment-text" placeholder="응원의 메시지를 남겨주세요..." required></textarea>
-            <button type="submit">댓글 달기</button>
-        </form>
-        <div id="comment-list">
-            <h3>댓글 목록</h3>
-            <!-- Comments will be added here -->
-        </div>
-    </section>
+        <main class="gallery-container">
+            <div class="gallery" id="photo-gallery">
+                <!-- Photos will be dynamically added here -->
+            </div>
+        </main>
+    </div>
 
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
@@ -295,7 +282,6 @@
         const canvas = document.getElementById('gradient-canvas');
         const ctx = canvas.getContext('2d');
         let time = 0;
-        let scrollY = 0;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -304,7 +290,7 @@
 
         function drawGradient() {
             time += 0.002;
-            const hue = (time * 10 + scrollY * 0.05) % 360;
+            const hue = (time * 10) % 360;
             const color1 = `hsl(${hue}, 100%, 70%)`;
             const color2 = `hsl(${(hue + 120) % 360}, 100%, 70%)`;
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -316,25 +302,8 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('scroll', () => {
-            scrollY = window.scrollY;
-        });
         resizeCanvas();
         drawGradient();
-
-        // --- Hero Title Scroll Animation ---
-        const titleContainer = document.querySelector('.hero-title-container');
-        window.addEventListener('scroll', () => {
-            const scrollPosition = window.scrollY;
-            const windowHeight = window.innerHeight;
-            if (scrollPosition < windowHeight) {
-                const scrollPercent = scrollPosition / windowHeight;
-                const scale = 1 + scrollPercent * 1.5;
-                const opacity = 1 - scrollPercent * 1.5;
-                titleContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                titleContainer.style.opacity = Math.max(0, opacity);
-            }
-        });
 
         // --- Gallery & Lightbox & Fireworks ---
         const photoGallery = document.getElementById('photo-gallery');
@@ -366,7 +335,6 @@
             "1743749168548.jpg_compressed.JPEG", "1745576820286-2.jpg_compressed.JPEG", "양성호1.jpg", "양성호2.jpg", "양성호3.jpg",
             "eKUeGbDZFKFw.jpg_compressed.JPEG", "image_241225_B62FB42.jpg_compressed.JPEG", "IMG_0487.JPEG_compressed.JPEG",
             "IMG_0487.PNG_compressed.JPEG", "KakaoTalk_20240418_120329006.jpg", "KakaoTalk_20240501_133324924.jpg"
-            // Add more image file names here
         ];
 
         imageFiles.forEach(file => {
@@ -378,7 +346,6 @@
             img.alt = "양성호 사진";
             item.appendChild(img);
 
-            // Create like button
             const likeContainer = document.createElement('div');
             likeContainer.classList.add('like-container');
 
@@ -396,16 +363,15 @@
 
             photoGallery.appendChild(item);
 
-            // Like button event listener
             likeButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent lightbox from opening
+                e.stopPropagation();
                 let currentLikes = parseInt(likeCount.textContent, 10);
                 currentLikes++;
                 likeCount.textContent = currentLikes;
                 likeButton.classList.add('clicked');
                 setTimeout(() => {
                     likeButton.classList.remove('clicked');
-                }, 500); // Match animation duration
+                }, 500);
             });
 
             item.addEventListener('click', (e) => {
@@ -431,11 +397,10 @@
                     entry.target.classList.add('is-visible');
                 }
             });
-        }, { threshold: 0.2 });
+        }, { threshold: 0.1 });
 
         galleryItems.forEach(item => { observer.observe(item); });
 
-        // --- Fireworks Effect ---
         const fireworksContainer = document.getElementById('fireworks-container');
         function createFireworks(x, y) {
             const message = document.createElement('div');
@@ -473,7 +438,6 @@
             }
         }
 
-        // --- Comment Section Logic ---
         const commentForm = document.getElementById('comment-form');
         const commentAuthorInput = document.getElementById('comment-author');
         const commentTextInput = document.getElementById('comment-text');
@@ -507,7 +471,6 @@
             commentDiv.appendChild(authorP);
             commentDiv.appendChild(textP);
 
-            // Insert new comment at the top of the list, after the h3
             commentList.insertBefore(commentDiv, commentList.children[1]);
         }
     </script>
