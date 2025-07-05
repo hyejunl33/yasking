@@ -47,6 +47,12 @@
             font-weight: 900;
             color: var(--text-color);
             text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s ease; /* Interactive text */
+        }
+
+        .hero-title:hover {
+            color: #ff6b81;
+            text-shadow: 0 0 30px #ff6b81;
         }
 
         .heart {
@@ -71,7 +77,13 @@
             margin-bottom: 20px;
             color: #ff6b81;
             text-shadow: 0 0 10px rgba(255, 107, 129, 0.5);
-            animation: pulse 2s infinite alternate;
+            animation: pulse 2s infinite alternate; /* Interactive text size */
+            transition: all 0.3s ease; /* Interactive text */
+        }
+
+        .photo-of-the-day-container h2:hover {
+            color: #ff4757;
+            text-shadow: 0 0 20px #ff4757;
         }
 
         @keyframes pulse {
@@ -102,6 +114,12 @@
             font-weight: 700;
             margin-top: 0;
             margin-bottom: 20px;
+            transition: all 0.3s ease; /* Interactive text */
+        }
+
+        .comment-section h2:hover, .comment-section h3:hover {
+            color: #ff6b81;
+            text-shadow: 0 0 15px #ff6b81;
         }
 
         #comment-form {
@@ -307,6 +325,45 @@
             opacity: 0;
             transition: all 0.5s ease-in-out;
         }
+
+        .like-container {
+            position: absolute;
+            top: 15px; /* Changed from bottom to top */
+            right: 15px;
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .like-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .like-button.clicked {
+            animation: heart-pop 0.5s ease;
+        }
+
+        @keyframes heart-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+
+        .like-count {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -368,22 +425,27 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        console.log("Firebase initialized and Firestore instance created.");
 
-        // --- Canvas Gradient Background ---
+        // --- Canvas Gradient Background (Interactive) ---
         const canvas = document.getElementById('gradient-canvas');
         const ctx = canvas.getContext('2d');
         let time = 0;
+        let scrollY = 0; // Track scroll position
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            console.log("Canvas resized to:", canvas.width, "x", canvas.height);
         }
 
         function drawGradient() {
             time += 0.002;
-            const hue = (time * 10) % 360;
-            const color1 = `hsl(${hue}, 100%, 70%)`;
-            const color2 = `hsl(${(hue + 120) % 360}, 100%, 70%)`;
+            // Use scrollY to influence hue, making it interactive on scroll
+            const hue = (time * 10 + (scrollY / 10)) % 360; 
+            const saturation = 70; // Keep saturation constant for now
+            const color1 = `hsl(${hue}, ${saturation}%, 70%)`;
+            const color2 = `hsl(${(hue + 120) % 360}, ${saturation}%, 70%)`;
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, color1);
             gradient.addColorStop(1, color2);
@@ -393,8 +455,19 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+            // Update hero title size on scroll
+            const heroTitle = document.querySelector('.hero-title');
+            const scrollPercent = Math.min(1, window.scrollY / 300); // Adjust 300 for desired scroll distance
+            const initialSize = 6; // vw
+            const minSize = 3; // vw
+            const newSize = initialSize - (initialSize - minSize) * scrollPercent;
+            heroTitle.style.fontSize = `${newSize}vw`;
+        });
         resizeCanvas();
         drawGradient();
+        console.log("Gradient canvas setup complete.");
 
         // --- Image Files (Local) ---
         const localImageFiles = [
@@ -423,6 +496,10 @@
             "eKUeGbDZFKFw.jpg_compressed.JPEG", "image_241225_B62FB42.jpg_compressed.JPEG", "IMG_0487.JPEG_compressed.JPEG",
             "IMG_0487.PNG_compressed.JPEG", "KakaoTalk_20240418_120329006.jpg", "KakaoTalk_20240501_133324924.jpg"
         ];
+        console.log("localImageFiles loaded:", localImageFiles.length, "files.");
+        if (localImageFiles.length === 0) {
+            console.warn("localImageFiles array is empty. Please ensure image file names are correctly listed.");
+        }
 
         // --- Photo of the Day Logic ---
         const photoOfTheDaySection = document.getElementById('photo-of-the-day-section');
@@ -445,6 +522,10 @@
                     photoOfTheDayImg.src = './' + encodeURIComponent(doc.data().fileName);
                 } else {
                     console.log("Selecting new Photo of the Day...");
+                    if (localImageFiles.length === 0) {
+                        console.error("No image files available for Photo of the Day. Cannot set.");
+                        return;
+                    }
                     const randomIndex = Math.floor(Math.random() * localImageFiles.length);
                     const selectedFile = localImageFiles[randomIndex];
                     
@@ -511,6 +592,7 @@
                     item.appendChild(likeContainer);
 
                     photoGallery.appendChild(item);
+                    console.log("Appended gallery item for:", file);
 
                     // Listen for real-time updates on this image's likes
                     const imageId = encodeURIComponent(file);
@@ -518,24 +600,27 @@
                     likeDocRef.onSnapshot((doc) => {
                         if (doc.exists) {
                             likeCount.textContent = doc.data().count || 0;
+                            console.log(`Likes for ${file} updated to: ${likeCount.textContent}`);
                         } else {
                             likeCount.textContent = 0; // Initialize if document doesn't exist
+                            console.log(`Likes for ${file} initialized to 0 (document not found).`);
                         }
                     }, (error) => {
-                        console.error("Error getting document:", error);
+                        console.error("Error getting document for likes:", error);
                     });
 
                     likeButton.addEventListener('click', (e) => {
                         e.stopPropagation();
                         likeDocRef.set({ count: firebase.firestore.FieldValue.increment(1) }, { merge: true })
                             .then(() => {
+                                console.log("Like incremented for:", file);
                                 likeButton.classList.add('clicked');
                                 setTimeout(() => {
                                     likeButton.classList.remove('clicked');
                                 }, 500);
                             })
                             .catch((error) => {
-                                console.error("Error updating document:", error);
+                                console.error("Error updating document for likes:", error);
                             });
                     });
 
@@ -552,6 +637,7 @@
                     });
                     // Observe the newly created gallery item
                     galleryItemsObserver.observe(item);
+                    console.log("Observing gallery item for:", file);
                 });
 
             } catch (error) {
@@ -615,18 +701,18 @@
 
         // Load comments from Firestore on page load and listen for real-time updates
         db.collection('comments').orderBy('likes', 'desc').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-            console.log("Comments snapshot received.");
+            console.log("Comments snapshot received. Number of documents:", snapshot.size);
             commentList.innerHTML = '<h3>댓글 목록</h3>'; // Clear existing comments
             if (snapshot.empty) {
-                console.log("No comments found.");
+                console.log("No comments found in snapshot.");
             }
             snapshot.forEach((doc) => {
                 const commentData = doc.data();
-                console.log("Adding comment to DOM:", doc.id, commentData.author, commentData.text);
+                console.log("Processing comment from Firestore:", doc.id, commentData.author, commentData.text);
                 addCommentToDOM(doc.id, commentData.author, commentData.text, commentData.likes || 0, commentData.password);
             });
         }, (error) => {
-            console.error("Error getting comments:", error);
+            console.error("Error getting comments from Firestore:", error);
         });
 
         commentForm.addEventListener('submit', (e) => {
@@ -656,11 +742,13 @@
                     console.error("Error writing document: ", error);
                 });
             } else {
-                console.log("Form fields are empty.");
+                console.log("Form fields are empty. Cannot submit.");
+                alert("이름, 비밀번호, 메시지를 모두 입력해주세요.");
             }
         });
 
         function addCommentToDOM(docId, author, text, likes, storedPassword) {
+            console.log("addCommentToDOM called for:", docId);
             const commentDiv = document.createElement('div');
             commentDiv.classList.add('comment');
             commentDiv.dataset.docId = docId; // Store the document ID
@@ -737,6 +825,7 @@
             commentDiv.appendChild(commentActionsDiv);
 
             commentList.insertBefore(commentDiv, commentList.children[1]);
+            console.log("Comment appended to DOM.");
         }
 
         // Initial load
