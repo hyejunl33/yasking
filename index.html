@@ -15,7 +15,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            background-color: #121212;
+            background-color: transparent; /* Canvas will be the background */
             color: var(--text-color);
             font-family: 'Noto Sans KR', sans-serif;
         }
@@ -381,14 +381,16 @@
 
             photoGallery.appendChild(item);
 
-            // Fetch initial like count from Firestore
+            // Fetch initial like count from Firestore and listen for real-time updates
             const imageId = encodeURIComponent(file);
             const likeDocRef = db.collection('likes').doc(imageId);
-            likeDocRef.get().then((doc) => {
+            likeDocRef.onSnapshot((doc) => {
                 if (doc.exists) {
                     likeCount.textContent = doc.data().count || 0;
+                } else {
+                    likeCount.textContent = 0; // Initialize if document doesn't exist
                 }
-            }).catch((error) => {
+            }, (error) => {
                 console.error("Error getting document:", error);
             });
 
@@ -397,7 +399,6 @@
                 // Increment like count in Firestore
                 likeDocRef.set({ count: firebase.firestore.FieldValue.increment(1) }, { merge: true })
                     .then(() => {
-                        // No need to manually increment here, Firestore listener will update
                         likeButton.classList.add('clicked');
                         setTimeout(() => {
                             likeButton.classList.remove('clicked');
@@ -484,6 +485,8 @@
                 const commentData = doc.data();
                 addCommentToDOM(commentData.author, commentData.text);
             });
+        }, (error) => {
+            console.error("Error getting comments:", error);
         });
 
         commentForm.addEventListener('submit', (e) => {
